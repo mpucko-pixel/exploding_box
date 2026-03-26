@@ -1,0 +1,32 @@
+
+SNAPSHOT – CURRENT STATE OF THE 3D BOX CONFIGURATOR (FEB 2026)
+
+1) MODEL
+- Box 0.1m, wall 0.0005m, lid 104×30×104mm, 29mm overlap
+- Lid spring animation + hinged walls (front/back/left/right)
+- Proper pivoting, depth-corrected positioning
+
+2) PAPER SYSTEM
+- PaperInset with inset=2mm, modes fit/tileSquare/tileBase
+- Paper = MeshBasicMaterial (unlit)
+- Cardboard = MeshStandardMaterial (lit)
+
+3) MATERIALS
+- CARDBOARD_COLOR = '#fafafa'
+- cardboard: roughness 0.45, metalness 0.15, envMapIntensity 1.5
+
+4) LIGHTING (FixedLights)
+- Front key, left fill, right fill, top soft light
+- Lights aligned to camera (beauty-rig style)
+- castShadow=false
+
+5) BACKGROUND
+- Transparent Canvas + CSS pastel gradient (f2eee6 → dcd8d4)
+
+6) TONE MAPPING
+- LinearToneMapping + exposure 1.25 + sRGB
+
+7) STATE
+- Realistic, soft 3D look
+- White carton appears correctly
+- Right-fill + front-fill working

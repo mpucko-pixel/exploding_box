@@ -1,0 +1,24 @@
+
+html, body, #root { height: 100%; margin: 0; }
+
+body {
+  /* Pastel D3: Creamy White → Soft Warm Grey */
+  background: linear-gradient(
+    180deg,
+    #f2eee6 0%,
+    #e6e2dd 50%,
+    #dcd8d4 100%
+  );
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+}
+
+
+.canvas-wrap { position: fixed; inset: 0; }
+.ui { position: fixed; top: 10px; left: 10px; display: grid; gap: 10px; max-width: 380px; z-index: 10; }
+.panel { background: rgba(20,20,20,0.72); color: #fff; padding: 12px; border-radius: 10px; box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
+.panel h3 { margin: 0 0 8px 0; font-size: 14px; font-weight: 700; letter-spacing: .2px; }
+.panel label { display: block; font-size: 12px; margin-top: 8px; opacity: .85; }
+.panel input[type='file'], .panel input[type='text'] { width: 100%; margin-top: 4px; padding: 6px 8px; border-radius: 6px; border: 1px solid #475569; background: #0b1020; color: #e5e7eb; outline: none; }
+.panel button { margin-top: 8px; padding: 8px 10px; border: 0; border-radius: 8px; background: #4f46e5; color: #fff; font-size: 12px; cursor: pointer; }
+.panel button.secondary { background: #374151; }
+.key-hint { position: fixed; left: 10px; bottom: 10px; z-index: 10; background: rgba(0,0,0,0.6); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px; }

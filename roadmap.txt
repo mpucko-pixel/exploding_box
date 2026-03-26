@@ -1,0 +1,24 @@
+
+ROADMAP – NEXT DEVELOPMENT PHASES
+
+1) UI TEMPLATES
+- Lid templates (full, half/half, ribbon)
+- Inside/outside panel templates
+
+2) INNER TEXTURES
+- Independent innerBase, innerLid, innerWalls
+- Optional color-only materials
+
+3) EXPORT FEATURES
+- PNG render (high-res)
+- 3D export (GLB)
+- Custom background or alpha channel
+
+4) RENDER MODE
+- "Preview" (fast)
+- "High Quality" (extra lights, AO, upscaled resolution)
+
+5) FUTURE ENHANCEMENTS
+- Annotations
+- Measurements overlay
+- Light presets

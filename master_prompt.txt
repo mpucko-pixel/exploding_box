@@ -1,0 +1,30 @@
+
+MASTER PROMPT – CONTINUE DEVELOPMENT
+
+We are continuing the development of a React + react-three-fiber 3D box configurator.
+Below is the full system snapshot to restore context.
+
+MODEL:
+- Base 0.1m cube, 0.0005m walls, lid 104×30×104mm
+- React-spring animations for lid and panels
+
+PAPER SYSTEM:
+- PaperInset: inset=2mm, modes fit/tileSquare/tileBase
+- Paper: MeshBasicMaterial
+- Cardboard: MeshStandardMaterial
+
+MATERIALS:
+color '#fafafa', roughness 0.45, metalness 0.15, envMapIntensity 1.5
+
+LIGHTING:
+- FixedLights (front key, left fill, right fill, top soft light)
+- Lights follow camera orientation for consistent product-shot look
+
+BACKGROUND:
+- Transparent Canvas with pastel CSS gradient
+
+TONE MAPPING:
+- LinearToneMapping, exposure=1.25, sRGB color space
+
+Use this snapshot as base context.
+Next steps may include templates, inner textures, export, render modes.
