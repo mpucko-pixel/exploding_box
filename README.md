@@ -1,51 +1,53 @@
-# Exploding Box – React + Three.js Configurator  
+# Exploding Box – React + Three.js Configurator
+
 Interactive 3D exploding gift box configurator built with **React**, **React Three Fiber**, **Three.js**, **Drei**, **React Spring**, and **Vite**.
 
 This project renders a fully animated “exploding box” with:
-- opening lid  
-- unfolding side panels  
-- configurable paper textures  
-- 2 mm realistic paper inset  
-- physically‑based cardboard material  
-- studio‑quality lighting rig  
-- pastel-gradient background  
-- tone‑mapped rendering pipeline  
-- optional figurine inside the box  
 
-The system is built for product visualization, customization workflows, and high‑quality 3D previews.
+- sequential lid + wall unfolding animation
+- configurable paper textures (inner + outer)
+- 2 mm realistic paper inset
+- physically‑based cardboard material
+- studio‑quality camera‑aligned lighting rig
+- pastel-gradient background
+- tone‑mapped rendering pipeline
+- optional figurine inside the box
+
+The system is built for product visualization, template workflows, and high‑quality 3D previews.
 
 ---
 
 # ✨ Features
 
 ## 🎁 Realistic 3D Exploding Box
-- True-to-life dimensions (base 100×100×100 mm, lid 104×104×30 mm)  
-- Hinged side walls (front/back/left/right)  
-- React‑spring animations for lid + walls  
-- Smooth, camera-independent motion  
+- True‑to‑life physical dimensions  
+- React‑spring based sequential animation system  
+- **New:** centralized `BoxAnimator.js` controlling open/close/reset  
+- Lid always opens first → then walls  
+- Walls always close first → then lid  
 
 ## 🧻 Paper & Texture System
-- Independent textures for lid top, lid sides, base, inner base  
+- Independent textures for:
+  - lid top  
+  - lid sides  
+  - base  
+  - inner base  
 - PaperInset component with:
-  - **2 mm inset**  
-  - anti z‑fighting EPS  
-  - double-sided options  
-  - tiling modes: `fit`, `tileSquare`, `tileBase`  
-- UNLIT material ensures exact color reproduction  
-- Texture caching → no flicker when switching designs  
+  - **2 mm inset**
+  - anti z‑fighting EPS offset
+  - tiling modes: `fit`, `tileSquare`, `tileBase`
+- MeshBasicMaterial for exact color reproduction (unlit)
+- Texture caching for instant swapping
 
 ## 📦 Cardboard Material (PBR)
-Accurate white-cardboard look using:
-
 ```jsx
 <meshStandardMaterial
-  color={CARDBOARD_COLOR}   // recommended '#fafafa'
+  color={CARDBOARD_COLOR}
   roughness={0.45}
   metalness={0.15}
   envMapIntensity={1.5}
   flatShading={false}
 />
-```
 
 A perfect balance between realism, contrast, and softness.
 
@@ -136,35 +138,54 @@ Output is saved in the **dist/** directory.
 exploding_box/
 │
 ├── src/
+│   ├── animation/
+│   │   └── BoxAnimator.js      
+│   │
 │   ├── components/
-│   │   ├── Scene.jsx
+│   │   ├── Scene.jsx           
 │   │   ├── LidGroup.jsx
 │   │   ├── HingedPanel.jsx
 │   │   ├── PaperInset.jsx
 │   │   ├── FixedLights.jsx
-│   │   └── Figurine components...
+│   │   ├── Figurine.jsx
+│   │   └── FigurineDragRotation.jsx
 │   │
-│   ├── ui/
-│   ├── assets/
-│   ├── App.jsx
-│   ├── index.jsx
-│   ├── styles.css
 │   ├── constants.js
-│   └── textureCache.js
-│
-├── index.html
-├── package.json
-├── package-lock.json
-├── vite.config.js
+│   ├── textureCache.js
+│   ├── styles.css
+│   ├── App.jsx
+│   └── index.jsx
 │
 ├── README.md
 ├── snapshot.txt
 ├── roadmap.txt
 ├── master_prompt.txt
-└── .gitignore
+├── index.html
+└── vite.config.js
 ```
 
 ---
+
+# 🧩 New Animation System (2026 Update)
+Introduced:
+✔ /src/animation/BoxAnimator.js
+
+- Centralized spring management
+- Open/close/reset methods
+- Manual delays for precise sequencing:
+  - Lid completes visually → then walls
+  - Walls complete visually → then lid
+- Animation‑lock to prevent overlapping events
+
+Scene.jsx now only:
+- subscribes to DOM events (open-box, close-box, reset-box)
+- receives spring values from BoxAnimator
+- renders geometry, lighting, and materials
+
+This modular design is ideal for future features such as:
+- render modes
+- camera presets
+- multi‑box support
 
 # 🧭 Development Snapshot & Context Files
 

@@ -1,620 +1,248 @@
-SNAPSHOT — Exploding Box Configurator (Extended Technical Overview)
-State as of March 2026
-Tech stack: React 18, React Three Fiber (R3F), Three.js, Drei, React Spring, Vite
+---
 
-------------------------------------------------------------
-1. HIGH‑LEVEL SYSTEM OVERVIEW
-------------------------------------------------------------
+# ✅ **UPDATED snapshot.txt** (copy/paste)
 
-This project is a real‑time interactive 3D “exploding box configurator”.
-It supports:
-- Animated lid opening via react‑spring
-- Animated folding walls (front/back/left/right)
-- Full texture customization (outer/inner)
-- Configurable lid textures and lid‑sides textures
-- Camera-aligned product studio lighting
-- Realistic cardboard materials
-- Paper inset precision (2 mm)
-- Tile-based texture scaling (tileBase mode)
-- Transparent canvas + pastel gradient CSS background
-- Tone‑mapped PBR rendering
-- Fast rendering suitable for product configuration
+Below is a refreshed, fully synchronized snapshot explicitly reflecting the **new animation system**, **BoxAnimator architecture**, and **Scene.jsx changes**.
 
-The architecture is modular and designed for ongoing expansion:
-UI templates, texture editing tools, exports, render modes, etc.
+```txt
+SNAPSHOT — Exploding Box Configurator
+Technical State: March 2026 (Post‑Animation Refactor)
 
-------------------------------------------------------------
-2. DIRECTORY STRUCTURE
-------------------------------------------------------------
+============================================================
+1. HIGH‑LEVEL OVERVIEW
+============================================================
+The configurator is a real‑time, interactive 3D “exploding box”
+built with React + React Three Fiber + Three.js + React Spring.
 
+Major 2026 update:
+✔ NEW: BoxAnimator.js (central animation controller)
+✔ NEW: precise sequential lid → wall → lid logic
+✔ Scene.jsx refactored to be a pure render layer
+✔ Manual delays added for reliable visual timing
+✔ Overall animation stability significantly improved
+
+System supports:
+- Animated lid
+- Animated side walls (hinged)
+- Configurable outer & inner textures
+- Realistic cardboard PBR materials
+- PaperInset system (2mm inset)
+- Camera‑aligned lighting (FixedLights)
+- Tone‑mapped rendering pipeline
+- Transparent canvas + CSS gradient
+- Optional figurine inside the box
+
+Modular architecture allows future expansion into:
+- render modes
+- texture editing
+- presets
+- PNG/GLB export
+- template system
+
+============================================================
+2. DIRECTORY STRUCTURE (UPDATED)
+============================================================
 src/
-│
-├── components/
-│   ├── Scene.jsx                (root 3D scene with lights + layout)
-│   ├── LidGroup.jsx             (lid top + 4 lid sides + lid paper)
-│   ├── HingedPanel.jsx          (animated side panels of base)
-│   ├── PaperInset.jsx           (texture placement system)
-│   ├── FixedLights.jsx          (camera-aligned studio lighting)
-│   ├── Figurine.jsx             (optional decorative model)
-│   └── FigurineDragRotation.jsx (orbit-like drag rotation for figurine)
-│
-├── ui/                          (future UI controls)
-│
-├── assets/                      (icons, textures, preview images)
-│
-├── constants.js                 (dimensions, inset, tileBase, cardboard color)
-├── textureCache.js              (global texture cache)
-├── styles.css                   (CSS pastel background gradient)
-├── App.jsx
-└── index.jsx
+  animation/
+    BoxAnimator.js       ← NEW 2026 sequential animation system
 
-Everything is ready for future additions.
+  components/
+    Scene.jsx            ← now uses BoxAnimator.js
+    LidGroup.jsx
+    HingedPanel.jsx
+    PaperInset.jsx
+    FixedLights.jsx
+    Figurine.jsx
+    FigurineDragRotation.jsx
 
-------------------------------------------------------------
-3. OBJECT GEOMETRY & DIMENSIONS
-------------------------------------------------------------
+  constants.js
+  textureCache.js
+  styles.css
+  App.jsx
+  index.jsx
 
+snapshot.txt
+roadmap.txt
+master_prompt.txt
+
+============================================================
+3. GEOMETRY & DIMENSIONS
+============================================================
 Base Box:
-- Size: 0.1 m × 0.1 m × 0.1 m (100×100×100 mm)
-- Wall thickness: 0.0005 m (0.5 mm)
-- Each wall is a hinged panel that rotates outward during opening.
+- Size: 100×100×100 mm
+- Wall thickness: 0.5 mm
+- Side walls rotate 90° outward
 
 Lid:
-- Top plate: 104×104 mm
-- Height: 30 mm
-- Overlap: 29 mm
-- Sides are rendered as separate geometry pieces.
+- 104×104 mm top
+- 30 mm height
+- 29 mm overlap over base
 
 Interior:
-- Each inner face may receive independent textures (innerBase, innerWalls, innerLid) — not yet fully implemented but system is ready.
+- Independent textures for inner base (others planned)
+- EPS offset for anti z‑fighting
+- paper inset = 2 mm
 
-All dimensions are physically correct for real paper-craft exploding boxes.
+Texture placement:
+- PaperInset planes sized to subtract inset from each dimension
+- Rotation, size, and position defined per surface
 
-------------------------------------------------------------
-4. ANIMATION SYSTEM (REACT SPRING)
-------------------------------------------------------------
+============================================================
+4. NEW ANIMATION SYSTEM (2026)
+============================================================
+Two value springs:
+- lidSpring.open  (0 → 1)
+- wallsSpring.open (0 → 1)
 
-Two independent spring animations:
-- lidSpring.open     (controls lid opening sequence)
-- wallsSpring.open   (controls folding of the 4 sides)
+Controlled by BoxAnimator.js:
+- open()
+- close()
+- reset()
 
-LidGroup uses the lidSpring value to:
-- Lift the lid slightly
-- Animate it upward in a subtle, controlled manner
+Key change:
+React‑spring does NOT delay visual movement when using duration,
+so manual timing delays were introduced for **real** sequencing:
 
-HingedPanel uses wallsSpring to:
-- Rotates each side around its pivot hinge
-- Correctly flips orientation depending on side (front/back/left/right)
+OPEN:
+  1) lidSpring.open = 1
+  2) wait(ANIM.lid * 600)
+  3) wallsSpring.open = 1
 
-------------------------------------------------------------
-5. PAPER TEXTURE SYSTEM (PaperInset)
-------------------------------------------------------------
+CLOSE:
+  1) wallsSpring.open = 0
+  2) wait(ANIM.walls * 500)
+  3) lidSpring.open = 0
 
-PaperInset is responsible for:
-- Placing a textured plane over cardboard surfaces
-- Offsetting the plane using EPS to avoid z-fighting
-- Applying a 2 mm inset (PAPER_INSET = 0.002)
-- Choosing tiling mode:
-    fit        → no repetition (stretched)
-    tileSquare → repeat with equal scale on X/Y
-    tileBase   → repeat based on real-world size (PAPER_TILE_BASE = 0.02 m)
+RESET:
+  - Both springs snap instantly to zero
 
-The paper uses:
-- MeshBasicMaterial (UNLIT)
-This ensures:
-- Exact color reproduction
-- No shadows altering the print appearance
+BoxAnimator.js includes:
+- animation lock (prevents overlap)
+- reusable wait(ms) helper
+- isolated animation logic (Scene is clean now)
 
-PaperInset is also texture-cache‑aware via textureCache.js.
+============================================================
+5. SPRING USAGE
+============================================================
+Springs are physics-based:
+- tension 110–120
+- friction 16–18
+- Manual delay for visual ordering
 
-------------------------------------------------------------
-6. CARDBOARD MATERIAL SYSTEM
-------------------------------------------------------------
+This solves:
+- walls opening too early
+- lid closing too early
+- race conditions
+- inconsistent animation overlap
 
-Cardboard uses MeshStandardMaterial with tuned parameters:
+============================================================
+6. LIGHTING (UNCHANGED BUT DOCUMENTED)
+============================================================
+FixedLights.jsx creates a camera‑aligned studio lighting rig:
+- front key
+- right fill
+- left fill
+- top soft light
 
-color: '#fafafa'          (studio white)
-roughness: 0.45
-metalness: 0.15
-envMapIntensity: 1.5
-flatShading: false
+Benefits:
+- consistent illumination
+- no shadows rotating incorrectly
+- balanced product-render look
 
-This combination:
-- Avoids "flat gray" look of real PBR white
-- Produces clean, bright surfaces
-- Preserves 3D depth even under pastel lighting
-- Enhances edges without becoming reflective
+Additional global lights in Scene:
+- ambientLight (0.35)
+- hemisphereLight (0.25)
+- several directional fills
 
-This is the recommended “Studio White” preset.
+All castShadow = false for clean product rendering.
 
-------------------------------------------------------------
-7. LIGHTING — CAMERA‑ALIGNED STUDIO RIG (FixedLights.jsx)
-------------------------------------------------------------
+============================================================
+7. MATERIALS
+============================================================
+Cardboard:
+- color: #fafafa
+- roughness: 0.45
+- metalness: 0.15
+- envMapIntensity: 1.5
 
-The most important visual component of the project.
+Paper:
+- MeshBasicMaterial (unlit)
+- tileBase mode for realistic scaling
 
-Lights include:
-- Front key light      (1.2)
-- Right fill           (0.65)
-- Left fill            (0.6)
-- Top soft light       (0.5)
-
-Lights follow the camera orientation every frame:
-group.position = camera.position  
-group.rotation = camera.rotation
-
-This provides:
-- Consistent lighting no matter how the box rotates
-- Perfect product‑shot look
-- Clean, balanced shading
-- Bright, white, uniform surfaces
-- NO spinning or drifting lights
-
-castShadow is disabled to avoid dark artifacts.
-
-------------------------------------------------------------
-8. TONE MAPPING PIPELINE
-------------------------------------------------------------
-
-Renderer settings inside Canvas:
-
+============================================================
+8. TONE MAPPING
+============================================================
 renderer.toneMapping = LinearToneMapping
 renderer.toneMappingExposure = 1.25
 renderer.outputColorSpace = SRGBColorSpace
 
-Purpose:
-- Preserves whites without washing out details
-- Prevents HDR blowout from studio lights
-- Makes PAPER colors match expected appearance
-- Harmonizes foreground/background brightness
+Preserves:
+- clean whites
+- pastel lighting aesthetic
+- realistic brightness levels
 
-------------------------------------------------------------
-9. BACKGROUND & PRESENTATION LAYER
-------------------------------------------------------------
+============================================================
+9. BACKGROUND
+============================================================
+Canvas: transparent  
+CSS: pastel vertical gradient
 
-Canvas uses:
-background: transparent
+Creates:
+- high‑end commercial photography look
+- clean separation from foreground
 
-CSS applies a pastel studio gradient:
-
-#f2eee6 → #e6e2dd → #dcd8d4
-
-This yields:
-- Soft, premium aesthetic
-- Professional product photography look
-- Perfect environment for white cardboard
-
-------------------------------------------------------------
+============================================================
 10. TEXTURE CACHING
-------------------------------------------------------------
-
-textureCache.js provides:
-- Global texture reuse by URL
-- Faster switching of paper designs
-- Prevents unnecessary loading hiccups
-- Ensures consistent color-space and filtering
-
-------------------------------------------------------------
-11. VERIFIED BEHAVIORS (WORKING WELL)
-------------------------------------------------------------
-
-- Lid animation is correct and stable
-- Wall unfolding is smooth and physically plausible
-- No z-fighting on any textures
-- Inner/outer base papers correctly align
-- FixedLights produce consistent visuals
-- White cardboard appears white, not gray
-- TileBase works uniformly on all surfaces
-- Scene builds cleanly with Vite
-- GitHub project structure is correct
-
-------------------------------------------------------------
-12. KNOWN LIMITATIONS / TODO
-------------------------------------------------------------
-
-Pending or planned:
-- UI templates (full, half, stripe lid layouts)
-- Inside texture system (inner walls, inner lid)
-- PNG high-quality export (2x/4x scale + transparent)
-- GLB model export
-- Render modes: preview vs high-end render
-- Paper masking (guides, crop tools)
-- Multi-size box support
-- Improved figurine placement / rotation
-- Light presets switcher
-
-
-
-------------------------------------------------------------
-13. ROADMAP POINTER
-------------------------------------------------------------
-
-Development direction is defined in:
-roadmap.txt
-
-------------------------------------------------------------
-14. HOW TO USE THIS SNAPSHOT
-------------------------------------------------------------
-
-Paste this file into a new AI session along with the repository URL.
-The assistant will:
-- Load repo structure
-- Understand all materials, lighting, geometry
-- Restore dev context instantly
-- Continue with any new feature based on this state
-
-------------------------------------------------------------
-15. LIGHTING DIAGRAM (ASCII VISUAL OVERVIEW)
-------------------------------------------------------------
-
-The lighting system uses a camera-aligned multi-light “studio rig”,
-implemented inside FixedLights.jsx. Lights do NOT rotate with the
-object — they follow the camera orientation every frame.
-
-   CAMERA
-     |
-     V        (lights move with camera orientation)
-  
-             [ Top Light ]
-                 (0, +2.5, +1)
-                     ||
-                     ||
-                     \/
-               +--------------+
-               |              |
-               |   LID TOP    |
-               |              |
-  Left Fill -->|              |<-- Right Fill
- (-1.5,+0.5,+1.5)             (1.8,+0.3,+1.2)
- intensity 0.6                 intensity 0.65
-               +--------------+
-                     /\
-                     ||
-                     ||
-             [ Front Key Light ]
-                (0, 0, +2)
-             intensity 1.2
-
-
-EXPLANATION:
-
- • FRONT KEY LIGHT
-   Strongest light, brightens front-facing surfaces.
-   Acts like a photo studio softbox in front of the camera.
-
- • RIGHT FILL
-   Softens shadow on the right wall of the box.
-   Ensures right side is not too dark.
-
- • LEFT FILL
-   Soft, low-intensity light that keeps left side balanced.
-
- • TOP LIGHT
-   Adds gentle highlight to lid top and upper edges.
-
- • CAMERA-ALIGNED RIG
-   All lights are children of a tracking group:
-   
-      group.position = camera.position
-      group.rotation = camera.rotation
-
-   This means:
-   → The box rotates freely
-   → The lighting ALWAYS stays “from the viewer’s direction”
-   → Perfect product-shot consistency
-   → No spinning shadows or inconsistent shading
-
-This rig produces clean, bright, commercial-quality lighting
-similar to real photography studios.
-
-------------------------------------------------------------
-16. GEOMETRY DIAGRAM (EXPLODING BOX - ASCII OVERVIEW)
-------------------------------------------------------------
-
-COORDINATE AXIS (Three.js standard)
-  
-   Y+  ↑
-       |
-       |
-       o----→ X+
-      /
-     Z+   (toward viewer)
-
-------------------------------------------------------------
-BOX GEOMETRY (TOP VIEW + 3D EXPANDED VIEW)
-------------------------------------------------------------
-
-                 ┌───────────────────────────┐
-                 │         LID TOP           │   104 mm × 104 mm
-                 │         (LID_SIZE[0],     │
-                 │          LID_SIZE[2])     │
-                 └───────────────────────────┘
-                 |←----- 104 mm --------→|
-
-    Each lid side is 29 mm tall (LID_OVERLAP)
-    with thickness = WALL_THICKNESS (0.5 mm)
-
-
-                    ┌───────────────┐
-                    │    LID TOP    │
-                    └───────────────┘
-                     /      |      \
-                    /       |       \
-                   /        |        \
-                  /         |         \
-                 /          |          \
-        LID SIDE (LEFT)     |      LID SIDE (RIGHT)
-               (29mm)       |         (29mm)
-                            |
-                            |
-                      LID SIDE FRONT (29mm)
-
-
-------------------------------------------------------------
-BASE BOX (EXPLODED SIDE VIEW)
-------------------------------------------------------------
-
-               [ Top removed - lid is separate ]
-
-                 ↑ Y+
-                 |
-       ┌───────────────────────────┐
-       │                           │
-       │       INNER WALL          │  100 mm height
-       │       (Front Example)     │
-       │                           │
-       └───────────────────────────┘
-               ↑ 29 mm (hinge point for lid overlap)
-               
-      HingedPanel rotates from BOTTOM EDGE:
-
-                hinge ----→  front panel rotates down
-                (0,0,z)      spring.open → 0 → 90°
-
-------------------------------------------------------------
-FULL EXPLODED BOX (SIDE PANELS + BASE + LID)
-------------------------------------------------------------
-
-                   ┌───────────────────────────┐
-                   │          LID TOP          │
-                   └───────────────────────────┘
-                     |            ↑
-                     |            |  30 mm lid height
-                     v            |
-             ┌──────────────┐  (attached by overlap)
-             │  LID SIDE     │
-             └──────────────┘
-                     |
-                     |
-             ┌───────────────────────────┐
-             │         BASE TOP          │  100 × 100 mm
-             └───────────────────────────┘
-             /       /     |     \       \
-            /       /      |      \       \
-           /       /       |       \       \
-          v       v        v        v       v
-   FRONT WALL  RIGHT WALL  ...    LEFT WALL (all 100×100 mm)
-   hinge at base edge → rotates outward 90°
-
-------------------------------------------------------------
-DIMENSIONS (FROM constants.js)
-------------------------------------------------------------
-
-Base:
-  BOX_SIZE = 0.1 m       (100 mm)
-  WALL_THICKNESS = 0.0005 m (0.5 mm)
-
-Lid:
-  LID_SIZE = [0.104, 0.03, 0.104]
-       → width: 104 mm
-       → height: 30 mm
-       → depth: 104 mm
-
-  LID_OVERLAP = 0.029 m = 29 mm (lid side height)
-
-Paper:
-  PAPER_INSET = 0.002 m = 2 mm
-  PAPER_TILE_BASE = 0.02 m = 20 mm tiling unit
-
-EPS:
-  EPS = 0.00025 m = 0.25 mm offset for anti z-fighting
-
-------------------------------------------------------------
-GEOMETRY SUMMARY
-------------------------------------------------------------
-
-• Lid sits over base with 29 mm overlap
-• LidGroup contains:
-    - top plate
-    - 4 side walls
-    - 5 paper surfaces (top + 4 sides)
-
-• Base contains:
-    - bottom plate
-    - 4 HingedPanel walls
-    - 2× paper surfaces (inner + outer)
-
-• All walls rotate around lower hinge
-• Inset paper surfaces sit 0.25 mm above cardboard
-• PaperInset planes sized by (surface dimensions - 2*inset)
-• Orientation handled via rotation props in each group
-• No face uses shadows → cleaner product rendering
-
-This diagram helps visualize:
-- rotation origins,
-- wall and lid relationships,
-- physical dimensions,
-- texture surfaces,
-- layering of cardboard/paper geometry.
-
-------------------------------------------------------------
-17. ANIMATION SYSTEM DIAGRAM (ASCII OVERVIEW)
-------------------------------------------------------------
-
-The animation system uses two independent react-spring values:
-- lidSpring.open     (controls lid lift + opening)
-- wallsSpring.open   (controls unfolding of 4 side panels)
-
-Both springs produce a value in the range 0 → 1.
-
-                    ANIMATION FLOW
-              (triggered by custom DOM events)
-
-                 +-----------------------+
-                 |   "open-box" event    |
-                 +-----------+-----------+
-                             |
-                             v
-              +----------------------------+
-              | lidSpring.start({ open: 1 })|
-              | wallsSpring.start({ open: 1})|
-              +----------------------------+
-
-                 ANIMATION RESET / CLOSE
-                 ("close-box" or "reset-box")
-                             |
-                             v
-              +----------------------------+
-              | lidSpring.start({ open: 0 })|
-              | wallsSpring.start({ open: 0})|
-              +----------------------------+
-
-------------------------------------------------------------
-LID OPENING DIAGRAM (lidSpring.open)
-------------------------------------------------------------
-
-Value: lidSpring.open ∈ [0, 1]
-
-0.0 = closed
-0.5 = mid-animation
-1.0 = fully open (lid moved upward)
-
-               Y+ ↑
-
-         lidSpring.open = 0.0
-            (closed lid)
-
-               +---------+
-               |  LID    |
-               +---------+
-                  |
-                  |
-                  v
-
-         lidSpring.open = 1.0
-            (open lid)
-
-                 +---------+
-                 |  LID    |  ← lifted upward slightly
-                 +---------+      (offset by spring)
-                    ^
-                    |
-            upward translation
-             based on lidSpring
-
-LidGroup position is:
-   [0, closedCenterY + (open * 0.05), 0]
-
-
-------------------------------------------------------------
-WALL UNFOLDING DIAGRAM (wallsSpring.open)
-------------------------------------------------------------
-
-Each wall panel rotates around its *bottom hinge*.
-
-Value: wallsSpring.open ∈ [0, 1]
-
-For front wall:
-  rotation = [-open * 90°, 0, 0]
-
-For back wall:
-  rotation = [+open * 90°, 0, 0]
-
-For left wall:
-  rotation = [0, 0, +open * 90°]
-
-For right wall:
-  rotation = [0, 0, -open * 90°]
-
-
-                    SIDE VIEW (front panel)
-                    -----------------------
-
-wallsSpring.open = 0.0           wallsSpring.open = 1.0
-        (closed)                       (fully open)
-
-       Y+ ↑                                 Y+ ↑
-           |                                     |
-           |                                     |
-   Z+ ←    |                              Z+ ←   |
-        +---------+                       +---------+
-        |  WALL   |                       |         \
-        |  (up)   |                       |          \
-        +---------+                       +-----------\   ← wall rotated
-      hinge at bottom edge → pivot        hinge stays fixed
-
-
-------------------------------------------------------------
-HINGE PIVOTS (per panel)
-------------------------------------------------------------
-
-Walls rotate around bottom edge:
-
-Front wall:  pivot = [ 0, WALL_THICKNESS, -BOX_SIZE/2 ]
-Back wall:   pivot = [ 0, WALL_THICKNESS,  BOX_SIZE/2 ]
-Left wall:   pivot = [-BOX_SIZE/2, WALL_THICKNESS, 0 ]
-Right wall:  pivot = [ BOX_SIZE/2, WALL_THICKNESS, 0 ]
-
-Lid rotates with its own center group translation,
-not an actual hinge rotation.
-
-
-------------------------------------------------------------
-TIMING AND ORDER
-------------------------------------------------------------
-
-Official sequence (from DOM events in Scene.jsx):
-
-"open-box":
-   1) lidSpring.open animate 0 → 1
-   2) wallsSpring.open animate 0 → 1 (after lid completes)
-
-"close-box":
-   1) wallsSpring.open animate 1 → 0
-   2) lidSpring.open animate 1 → 0
-
-"reset-box":
-   instantly sets both springs to 0
-
-This ensures:
-- lid opens first, then walls unfold
-- walls fold first, then lid closes
-- no jarring intersections
-- smooth, physically readable motion
-
-
-------------------------------------------------------------
-ANIMATION SUMMARY
-------------------------------------------------------------
-
-• lidSpring controls:
-    - vertical lift
-    - smooth easing
-    - entire LidGroup
-
-• wallsSpring controls:
-    - hinge rotation of 4 panels
-    - unique rotation for each side
-    - hinges defined per-axis
-
-• Animations triggered via:
-    dispatchEvent(new CustomEvent('open-box'))
-    dispatchEvent(new CustomEvent('close-box'))
-    dispatchEvent(new CustomEvent('reset-box'))
-
-• Motion is smooth, reversible, interruptible.
-
-
-------------------------------------------------------------
+============================================================
+textureCache.js ensures:
+- instant paper switching
+- no flicker
+- consistent filtering + color space
+
+============================================================
+11. VERIFIED WORKING STATE (POST‑UPDATE)
+============================================================
+✔ lid opens first  
+✔ walls unfold second  
+✔ walls close first  
+✔ lid closes second  
+✔ animations never overlap  
+✔ timing stable  
+✔ lighting stable  
+✔ no z-fighting  
+✔ PaperInset works correctly  
+✔ texture tiling consistent  
+✔ Scene.jsx is clean and minimal  
+
+============================================================
+12. FUTURE EXPANSION
+============================================================
+See roadmap.txt for full details.
+
+Near-term:
+- lid templates
+- interior texture overhaul
+- PNG/GLB export
+- render modes
+- measurement overlays
+- camera presets
+
+============================================================
+13. HOW TO RESTORE THIS STATE
+============================================================
+Provide:
+1. This snapshot  
+2. master_prompt.txt  
+3. GitHub repo URL  
+
+The AI will reconstruct:
+- architecture
+- geometry
+- animation flow
+- materials
+- lights
+- directory structure
+
+============================================================
 END OF SNAPSHOT
-------------------------------------------------------------
+============================================================
