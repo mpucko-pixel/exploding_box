@@ -1,248 +1,118 @@
----
-
-# ✅ **UPDATED snapshot.txt** (copy/paste)
-
-Below is a refreshed, fully synchronized snapshot explicitly reflecting the **new animation system**, **BoxAnimator architecture**, and **Scene.jsx changes**.
-
-```txt
 SNAPSHOT — Exploding Box Configurator
-Technical State: March 2026 (Post‑Animation Refactor)
+Technical State: March 27, 2026
 
 ============================================================
-1. HIGH‑LEVEL OVERVIEW
+1. OVERVIEW
 ============================================================
-The configurator is a real‑time, interactive 3D “exploding box”
-built with React + React Three Fiber + Three.js + React Spring.
+A real‑time 3D exploding‑box configurator using React, R3F, Three.js, Zustand, React Spring, and Vite 8.
 
-Major 2026 update:
-✔ NEW: BoxAnimator.js (central animation controller)
-✔ NEW: precise sequential lid → wall → lid logic
-✔ Scene.jsx refactored to be a pure render layer
-✔ Manual delays added for reliable visual timing
-✔ Overall animation stability significantly improved
-
-System supports:
-- Animated lid
-- Animated side walls (hinged)
-- Configurable outer & inner textures
-- Realistic cardboard PBR materials
-- PaperInset system (2mm inset)
-- Camera‑aligned lighting (FixedLights)
-- Tone‑mapped rendering pipeline
-- Transparent canvas + CSS gradient
-- Optional figurine inside the box
-
-Modular architecture allows future expansion into:
-- render modes
-- texture editing
-- presets
-- PNG/GLB export
-- template system
+Supports texture upload, figurine selection, lid animation, paper inset, lighting presets, PNG/GLB export.
 
 ============================================================
-2. DIRECTORY STRUCTURE (UPDATED)
+2. FOLDER STRUCTURE
 ============================================================
-src/
-  animation/
-    BoxAnimator.js       ← NEW 2026 sequential animation system
-
-  components/
-    Scene.jsx            ← now uses BoxAnimator.js
-    LidGroup.jsx
-    HingedPanel.jsx
-    PaperInset.jsx
-    FixedLights.jsx
-    Figurine.jsx
-    FigurineDragRotation.jsx
-
-  constants.js
-  textureCache.js
-  styles.css
-  App.jsx
-  index.jsx
-
-snapshot.txt
-roadmap.txt
-master_prompt.txt
-
-============================================================
-3. GEOMETRY & DIMENSIONS
-============================================================
-Base Box:
-- Size: 100×100×100 mm
-- Wall thickness: 0.5 mm
-- Side walls rotate 90° outward
-
-Lid:
-- 104×104 mm top
-- 30 mm height
-- 29 mm overlap over base
-
-Interior:
-- Independent textures for inner base (others planned)
-- EPS offset for anti z‑fighting
-- paper inset = 2 mm
-
-Texture placement:
-- PaperInset planes sized to subtract inset from each dimension
-- Rotation, size, and position defined per surface
-
-============================================================
-4. NEW ANIMATION SYSTEM (2026)
-============================================================
-Two value springs:
-- lidSpring.open  (0 → 1)
-- wallsSpring.open (0 → 1)
-
-Controlled by BoxAnimator.js:
-- open()
-- close()
-- reset()
-
-Key change:
-React‑spring does NOT delay visual movement when using duration,
-so manual timing delays were introduced for **real** sequencing:
-
-OPEN:
-  1) lidSpring.open = 1
-  2) wait(ANIM.lid * 600)
-  3) wallsSpring.open = 1
-
-CLOSE:
-  1) wallsSpring.open = 0
-  2) wait(ANIM.walls * 500)
-  3) lidSpring.open = 0
-
-RESET:
-  - Both springs snap instantly to zero
-
-BoxAnimator.js includes:
-- animation lock (prevents overlap)
-- reusable wait(ms) helper
-- isolated animation logic (Scene is clean now)
+(Accurate as of latest refactor)
+```
+📦src
+ ┣ 📂assets
+ ┃ ┣ 📜placeholder.glb
+ ┃ ┗ 📜sample.glb
+ ┣ 📂box
+ ┃ ┣ 📂base
+ ┃ ┃ ┣ 📜BaseGeometry.js
+ ┃ ┃ ┗ 📜HingedPanel.jsx
+ ┃ ┣ 📂decor
+ ┃ ┃ ┗ 📜DecorativeLayer.jsx
+ ┃ ┣ 📂figurines
+ ┃ ┃ ┣ 📜Figurine.jsx
+ ┃ ┃ ┗ 📜FigurineDragRotation.jsx
+ ┃ ┣ 📂lid
+ ┃ ┃ ┣ 📜LidGeometry.js
+ ┃ ┃ ┣ 📜LidGroup.jsx
+ ┃ ┃ ┗ 📜LidPaper.jsx
+ ┃ ┣ 📂paper
+ ┃ ┃ ┗ 📜PaperInset.jsx
+ ┃ ┗ 📜ConfiguratorScene.jsx
+ ┣ 📂core
+ ┃ ┣ 📂animation
+ ┃ ┃ ┗ 📜BoxAnimator.js
+ ┃ ┣ 📂geometry
+ ┃ ┣ 📂lighting
+ ┃ ┃ ┣ 📜FixedLights.jsx
+ ┃ ┃ ┗ 📜presets.js
+ ┃ ┣ 📂materials
+ ┃ ┃ ┣ 📜cardboard.js
+ ┃ ┃ ┗ 📜paper.js
+ ┃ ┗ 📂utils
+ ┃ ┃ ┣ 📜easing.js
+ ┃ ┃ ┣ 📜geometry.js
+ ┃ ┃ ┣ 📜helpers.js
+ ┃ ┃ ┣ 📜math.js
+ ┃ ┃ ┣ 📜textureCache.js
+ ┃ ┃ ┗ 📜wait.js
+ ┣ 📂export
+ ┃ ┣ 📂background
+ ┃ ┃ ┗ 📜studioBackgrounds.js
+ ┃ ┣ 📂glb
+ ┃ ┃ ┗ 📜exportGLB.js
+ ┃ ┗ 📂png
+ ┃ ┃ ┗ 📜exportPNG.js
+ ┣ 📂state
+ ┃ ┣ 📜selectors.js
+ ┃ ┗ 📜store.js
+ ┣ 📂ui
+ ┃ ┣ 📂controls
+ ┃ ┃ ┣ 📜AnimationControls.jsx
+ ┃ ┃ ┗ 📜CameraControls.jsx
+ ┃ ┣ 📂layout
+ ┃ ┃ ┗ 📜SidebarLayout.jsx
+ ┃ ┣ 📂panels
+ ┃ ┃ ┣ 📜ExportPanel.jsx
+ ┃ ┃ ┣ 📜FigurineControls.jsx
+ ┃ ┃ ┣ 📜FigurineLibrary.jsx
+ ┃ ┃ ┣ 📜FigurineLoader.jsx
+ ┃ ┃ ┣ 📜ResetPanel.jsx
+ ┃ ┃ ┣ 📜TemplatePanel.jsx
+ ┃ ┃ ┣ 📜TextureControls.jsx
+ ┃ ┃ ┗ 📜TexturePanel.jsx
+ ┃ ┗ 📂widgets
+ ┃ ┃ ┣ 📜ColorPicker.jsx
+ ┃ ┃ ┣ 📜TexturePicker.jsx
+ ┃ ┃ ┗ 📜ToggleSwitch.jsx
+ ┣ 📜App.jsx
+ ┣ 📜constants.js
+ ┣ 📜index.jsx
+ ┗ 📜styles.css``` 
 
 ============================================================
-5. SPRING USAGE
+3. KEY SYSTEMS
 ============================================================
-Springs are physics-based:
-- tension 110–120
-- friction 16–18
-- Manual delay for visual ordering
-
-This solves:
-- walls opening too early
-- lid closing too early
-- race conditions
-- inconsistent animation overlap
+- BoxAnimator: sequential lid → walls
+- PaperInset: inset, SRGB, tileBase
+- FixedLights: camera-aligned rig
+- Cardboard + Paper materials
+- Zustand global state
+- PNG/GLB export pipeline
 
 ============================================================
-6. LIGHTING (UNCHANGED BUT DOCUMENTED)
+4. STATE
 ============================================================
-FixedLights.jsx creates a camera‑aligned studio lighting rig:
-- front key
-- right fill
-- left fill
-- top soft light
-
-Benefits:
-- consistent illumination
-- no shadows rotating incorrectly
-- balanced product-render look
-
-Additional global lights in Scene:
-- ambientLight (0.35)
-- hemisphereLight (0.25)
-- several directional fills
-
-All castShadow = false for clean product rendering.
+Store holds textures, papers, figurineUrl, activePanel, animation events, reset, config import/export.
 
 ============================================================
-7. MATERIALS
+5. EXPORT
 ============================================================
-Cardboard:
-- color: #fafafa
-- roughness: 0.45
-- metalness: 0.15
-- envMapIntensity: 1.5
-
-Paper:
-- MeshBasicMaterial (unlit)
-- tileBase mode for realistic scaling
+PNG supersampled, transparent or colored background.
+GLB full-scene export.
+Background presets included.
 
 ============================================================
-8. TONE MAPPING
+6. ROADMAP
 ============================================================
-renderer.toneMapping = LinearToneMapping
-renderer.toneMappingExposure = 1.25
-renderer.outputColorSpace = SRGBColorSpace
+- Template system
+- Interior textures
+- Multi-box sizes
+- Order JSON
+- High-quality render mode
 
-Preserves:
-- clean whites
-- pastel lighting aesthetic
-- realistic brightness levels
-
-============================================================
-9. BACKGROUND
-============================================================
-Canvas: transparent  
-CSS: pastel vertical gradient
-
-Creates:
-- high‑end commercial photography look
-- clean separation from foreground
-
-============================================================
-10. TEXTURE CACHING
-============================================================
-textureCache.js ensures:
-- instant paper switching
-- no flicker
-- consistent filtering + color space
-
-============================================================
-11. VERIFIED WORKING STATE (POST‑UPDATE)
-============================================================
-✔ lid opens first  
-✔ walls unfold second  
-✔ walls close first  
-✔ lid closes second  
-✔ animations never overlap  
-✔ timing stable  
-✔ lighting stable  
-✔ no z-fighting  
-✔ PaperInset works correctly  
-✔ texture tiling consistent  
-✔ Scene.jsx is clean and minimal  
-
-============================================================
-12. FUTURE EXPANSION
-============================================================
-See roadmap.txt for full details.
-
-Near-term:
-- lid templates
-- interior texture overhaul
-- PNG/GLB export
-- render modes
-- measurement overlays
-- camera presets
-
-============================================================
-13. HOW TO RESTORE THIS STATE
-============================================================
-Provide:
-1. This snapshot  
-2. master_prompt.txt  
-3. GitHub repo URL  
-
-The AI will reconstruct:
-- architecture
-- geometry
-- animation flow
-- materials
-- lights
-- directory structure
-
-============================================================
-END OF SNAPSHOT
-============================================================
+END SNAPSHOT

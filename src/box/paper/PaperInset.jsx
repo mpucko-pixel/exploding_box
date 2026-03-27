@@ -1,5 +1,4 @@
 // src/box/paper/PaperInset.jsx
-
 import React, { useMemo } from "react";
 import * as THREE from "three";
 
@@ -7,49 +6,35 @@ import { loadCachedTexture } from "../../core/utils/textureCache.js";
 import { PAPER_INSET, PAPER_TILE_BASE } from "../../constants.js";
 
 /**
- * PaperInset
- * ----------
- * A “paper sticker” inset system with 3 mapping modes:
- *
- * - mode="fit"         → stretch to fill (may distort)
- * - mode="tileSquare"  → repeat with uniform tile scaling
- * - mode="tileBase"    → repeat based on real‑world units (consistent pattern size)
- *
- * tileBase = world‑space size of one tile (meters; e.g. 0.02 = 20 mm)
- * tileLockSquare = keep tiles square; otherwise use aspect ratio of image
+ * PaperInset — Paper decal layer with 3 mapping modes:
+ * fit, tileSquare, tileBase
  */
 export default function PaperInset({
   url,
-  size,                  // [width, height] in meters before inset
-  inset = PAPER_INSET,   // 2 mm
+  size,
+  inset = PAPER_INSET,
   rotation = [0, 0, 0],
   position = [0, 0, 0],
   unlit = true,
   doubleSided = false,
-  mode = "fit",          // "fit" | "tileSquare" | "tileBase"
+  mode = "fit",
   tileBase = PAPER_TILE_BASE,
   tileLockSquare = true,
 }) {
-
-  /**
-   * Load + clone texture (clone prevents modifying shared cache)
-   */
+  // Load + clone texture
   const tex = useMemo(() => {
     if (!url) return null;
 
     const src = loadCachedTexture(url);
     if (!src || !src.image) return null;
 
-    // Clone cached texture instance to safely modify repeat/wrap
     const t = src.clone();
     t.image = src.image;
     t.needsUpdate = true;
 
-    // Use SRGB color space (Three r160+)
     if ("colorSpace" in t) t.colorSpace = THREE.SRGBColorSpace;
     else t.encoding = THREE.sRGBEncoding;
 
-    // Filtering / sampling
     t.minFilter = THREE.LinearMipmapLinearFilter;
     t.magFilter = THREE.LinearFilter;
     t.anisotropy = 8;
@@ -60,16 +45,12 @@ export default function PaperInset({
 
   if (!tex) return null;
 
-  // Final paper dimensions with inset
+  // Inset size
   const w = Math.max(1e-6, size[0] - 2 * inset);
   const h = Math.max(1e-6, size[1] - 2 * inset);
 
-  //---------------------------------------------------------------------------
-  // TEXTURE MAPPING MODES
-  //---------------------------------------------------------------------------
-
+  // Mapping modes
   if (mode === "tileBase") {
-    // Consistent world‑space pattern size
     const imgW = tex.image?.width || 1;
     const imgH = tex.image?.height || 1;
     const imgAspect = imgH / imgW;
@@ -85,34 +66,25 @@ export default function PaperInset({
     tex.repeat.set(repeatX, repeatY);
     tex.center.set(0.5, 0.5);
     tex.rotation = 0;
-    tex.needsUpdate = true;
-
   } else if (mode === "tileSquare") {
-    // Maintain identical tile scale on both axes
-    const shortest = Math.min(w, h);
-    const repeatX = Math.max(1e-6, w / shortest);
-    const repeatY = Math.max(1e-6, h / shortest);
+    const s = Math.min(w, h);
+    const repeatX = Math.max(1e-6, w / s);
+    const repeatY = Math.max(1e-6, h / s);
 
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
     tex.repeat.set(repeatX, repeatY);
     tex.center.set(0.5, 0.5);
     tex.rotation = 0;
-    tex.needsUpdate = true;
-
   } else {
-    // FIT (no repetition)
     tex.wrapS = THREE.ClampToEdgeWrapping;
     tex.wrapT = THREE.ClampToEdgeWrapping;
     tex.repeat.set(1, 1);
     tex.center.set(0.5, 0.5);
     tex.rotation = 0;
-    tex.needsUpdate = true;
   }
 
-  //---------------------------------------------------------------------------
-  // RENDER
-  //---------------------------------------------------------------------------
+  tex.needsUpdate = true;
 
   return (
     <mesh rotation={rotation} position={position}>

@@ -1,77 +1,55 @@
-
-MASTER PROMPT – CONTINUE DEVELOPMENT
-
-I am continuing development of my React + Three.js (React Three Fiber) exploding box configurator.
+MASTER PROMPT — Exploding Box Configurator (2026)
 
 The full project source code is available here on GitHub:
 https://github.com/mpucko-pixel/exploding_box
 
 Please load the repository and confirm you have access to all project files.
 
-### PROJECT SNAPSHOT (current system state)
+This prompt restores the complete development context for the Exploding Box configurator.
 
-- React + Vite project with react-three-fiber and drei
-- 3D exploding box with:
-  - animated lid (spring)
-  - animated side panels (hinged spring panels)
-  - realistic cardboard material (MeshStandardMaterial)
-  - PaperInset system (fit / tileSquare / tileBase)
-  - 2 mm inset for paper
-  - texture caching
-  - camera controls via OrbitControls
+GOAL:
+Build a production‑quality 3D product configurator supporting:
+- texture uploads
+- template system
+- lid/top design
+- figurines
+- PNG/GLB export
+- ordering pipeline
 
-### LIGHTING (critical feature)
-- Using FixedLights.jsx
-- Lights are aligned to camera orientation every frame, so the lighting stays “from the front” while object rotates
-- Includes:
-  - front key light
-  - right fill light
-  - left fill light
-  - top soft light
-- All lights have castShadow = false
+TECH:
+React • R3F • Three.js • Zustand • React Spring • Vite 8 • GLTFExporter
 
-### TONE MAPPING
-- LinearToneMapping
-- exposure = 1.25
-- sRGB color space
+ARCHITECTURE:
+Follow the exact folder structure:
+```
+src/
+  box/    (lid, base, paper, figurines, decor)
+  core/   (animation, lighting, materials, utils)
+  export/ (png, glb, background)
+  ui/     (panels, controls, widgets, layout)
+  state/  (store, selectors)
+```
 
-### BACKGROUND
-- Canvas is transparent
-- CSS gradient used as pastel studio backdrop
+KEY SYSTEMS:
+- BoxAnimator: sequential animation
+- PaperInset: tileBase/fit/tileSquare
+- textureCache: SRGB caching
+- FixedLights + presets
+- Materials: cardboard + paper
+- Zustand store: textures/papers/figurine/config
+- Export system: PNG supersampling, GLB export
 
-### MATERIALS
-Cardboard:
-- color: #fafafa
-- roughness: 0.45
-- metalness: 0.15
-- envMapIntensity: 1.5
+RULES:
+- Maintain folder structure
+- Keep imports correct
+- Preserve PaperInset + BoxAnimator behavior
+- Keep UI and Scene decoupled
+- Provide full code blocks when updating
 
-Paper:
-- MeshBasicMaterial (unlit)
-- tileBase mode active for consistent scaling
+FUTURE WORK:
+- Template loader
+- Export UI
+- Order JSON
+- Render modes
 
-### WHAT I WANT TO DO NEXT
-FIX TIMING AND ORDER of opening the box. The lid must finish its animation and be at its final position before the walls open. Currently walls open at the same time the lid is starting to move. 
-------------------------------------------------------------
-Official sequence (from DOM events in Scene.jsx):
-
-"open-box":
-   1) lidSpring.open animate 0 → 1
-   2) wallsSpring.open animate 0 → 1 (after lid completes)
-
-"close-box":
-   1) wallsSpring.open animate 1 → 0
-   2) lidSpring.open animate 1 → 0
-
-"reset-box":
-   instantly sets both springs to 0
-
-This ensures:
-- lid opens first, then walls unfold
-- walls fold first, then lid closes
-- no jarring intersections
-- smooth, physically readable motion
-
-
-
-Please acknowledge loading the repository and then proceed.
+END MASTER PROMPT

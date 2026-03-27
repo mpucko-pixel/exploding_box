@@ -1,19 +1,31 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+// src/ui/panels/TextureControls.jsx
+import React, { useEffect, useRef, useState } from "react";
 
 /**
  * TextureControls
- *  - ob file izberi: pokaže thumbnail + ime
- *  - ob URL vnos: prikaže (URL) in thumbnail
- *  - na reset (R ali gumb Reset) počisti vsa polja
+ *
+ * Handles:
+ *  - file upload per wall
+ *  - URL input per wall
+ *  - thumbnail preview
+ *  - reacts to RESET event
+ *
+ * Maps to:
+ *   front/back/left/right → papers.outerBase
+ *   lid → lidTop & lidSides
  */
+
 export default function TextureControls({ textures, setTextures }) {
-  // lokalno stanje za prikaz imen in thumbnailov
   const [names, setNames] = useState({});
   const [urls, setUrls] = useState({
-    front: '', back: '', left: '', right: '', lid: ''
+    front: "",
+    back: "",
+    left: "",
+    right: "",
+    lid: "",
   });
 
-  // refi za file inpute – da jih lahko ob resetu "praznimo"
+  // File input refs (so Reset can clear them)
   const fileRefs = {
     front: useRef(null),
     back: useRef(null),
@@ -22,79 +34,134 @@ export default function TextureControls({ textures, setTextures }) {
     lid: useRef(null),
   };
 
-  useEffect(() => { window.__textures_state__ = textures; }, [textures]);
+  // Expose for debugging
+  useEffect(() => {
+    window.__textures_state__ = textures;
+  }, [textures]);
 
-  // Listen na "reset-ui-inputs" (kliče App.reset)
+  // Reset triggered by App.reset()
   useEffect(() => {
     const resetUi = () => {
-      // počisti local state
       setNames({});
-      setUrls({ front: '', back: '', left: '', right: '', lid: '' });
-      // počisti file inpute
+      setUrls({
+        front: "",
+        back: "",
+        left: "",
+        right: "",
+        lid: "",
+      });
+
+      // Clear all file inputs
       Object.values(fileRefs).forEach((r) => {
-        if (r.current) r.current.value = '';
+        if (r.current) r.current.value = "";
       });
     };
-    document.addEventListener('reset-ui-inputs', resetUi);
-    return () => document.removeEventListener('reset-ui-inputs', resetUi);
+
+    document.addEventListener("reset-ui-inputs", resetUi);
+    return () => document.removeEventListener("reset-ui-inputs", resetUi);
   }, []);
 
+  //---------------------------------------------------------------------------
+  // FILE HANDLER
+  //---------------------------------------------------------------------------
   const setFile = (key) => (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const objectUrl = URL.createObjectURL(file);
-    setTextures((t) => ({ ...t, [key]: objectUrl }));
-    setNames((n) => ({ ...n, [key]: file.name, [key + '_thumb']: objectUrl }));
+
+    // Update texture state
+    setTextures((t) => ({
+      ...t,
+      [key]: objectUrl,
+    }));
+
+    // Update UI thumbnails / names
+    setNames((n) => ({
+      ...n,
+      [key]: file.name,
+      [key + "_thumb"]: objectUrl,
+    }));
   };
 
-  const setUrl = (key) => (e) => {
-    const v = e.target.value;
-    setUrls((u) => ({ ...u, [key]: v }));
-    setTextures((t) => ({ ...t, [key]: v || null }));
-    setNames((n) => ({ ...n, [key]: v ? '(URL)' : '', [key + '_thumb']: v || '' }));
+  //---------------------------------------------------------------------------
+  // URL HANDLER
+  //---------------------------------------------------------------------------
+  const setUrlInput = (key) => (e) => {
+    const value = e.target.value;
+
+    setUrls((u) => ({
+      ...u,
+      [key]: value,
+    }));
+
+    setTextures((t) => ({
+      ...t,
+      [key]: value || null,
+    }));
+
+    setNames((n) => ({
+      ...n,
+      [key]: value ? "(URL)" : "",
+      [key + "_thumb"]: value || "",
+    }));
   };
 
+  //---------------------------------------------------------------------------
+  // ROW COMPONENT
+  //---------------------------------------------------------------------------
   const Row = ({ label, keyName }) => (
-    <div style={{ marginBottom: 10 }}>
-      <label>{label} – file</label>
-      <input ref={fileRefs[keyName]} type="file" accept="image/*" onChange={setFile(keyName)} />
+    <div style={{ marginBottom: "14px" }}>
+      {/* FILE INPUT */}
+      <label>{label} – File</label>
+      <input
+        type="file"
+        ref={fileRefs[keyName]}
+        onChange={setFile(keyName)}
+        accept="image/*"
+      />
+
       {names[keyName] && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-          {names[keyName + '_thumb'] ? (
+        <div style={{ marginTop: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
+          {names[keyName + "_thumb"] && (
             <img
-              src={names[keyName + '_thumb']}
-              alt=""
-              width={28}
-              height={28}
-              style={{ objectFit: 'cover', borderRadius: 4, border: '1px solid #444' }}
+              src={names[keyName + "_thumb"]}
+              alt="thumb"
+              style={{ width: "32px", height: "32px", objectFit: "cover", borderRadius: "4px" }}
             />
-          ) : null}
-          <span style={{ fontSize: 12, opacity: .9 }}>{names[keyName]}</span>
+          )}
+          <span>{names[keyName]}</span>
         </div>
       )}
 
-      <label>{label} – URL</label>
+      {/* URL INPUT */}
+      <label style={{ marginTop: "8px" }}>{label} – URL</label>
       <input
         type="text"
-        placeholder="https://..."
+        placeholder="https://example.com/texture.png"
         value={urls[keyName]}
-        onChange={setUrl(keyName)}
+        onChange={setUrlInput(keyName)}
       />
     </div>
   );
 
+  //---------------------------------------------------------------------------
+  // PANEL RENDER
+  //---------------------------------------------------------------------------
   return (
     <div className="panel">
-      <h3>Textures (per-wall)</h3>
-      <Row label="Front"  keyName="front" />
-      <Row label="Back"   keyName="back" />
-      <Row label="Left"   keyName="left" />
-      <Row label="Right"  keyName="right" />
-      <Row label="Lid (top)" keyName="lid" />
-      <div style={{ fontSize: 12, opacity: .8, marginTop: 6 }}>
-        Za zdaj: Front/Back/Left/Right → <b>outerBase</b> (vse zunanje stranice + zunanje dno).<br/>
-        Lid (top) → <b>vrh pokrova in 4 stranice pokrova</b>.
-      </div>
+      <h3>Textures (Per-wall)</h3>
+
+      <p style={{ marginBottom: "10px" }}>
+        Front / Back / Left / Right → <b>outerBase</b><br />
+        Lid (top) → <b>lidTop + lidSides</b>
+      </p>
+
+      <Row label="Front" keyName="front" />
+      <Row label="Back" keyName="back" />
+      <Row label="Left" keyName="left" />
+      <Row label="Right" keyName="right" />
+      <Row label="Lid" keyName="lid" />
     </div>
   );
 }

@@ -1,35 +1,34 @@
-// -------------------------------------------------------------
-// File: src/box/ConfiguratorScene.jsx
-// Updated with clean animation system via BoxAnimator.js
-// -------------------------------------------------------------
-import * as THREE from 'three';
-import React, { useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, ContactShadows } from '@react-three/drei';
+// src/box/ConfiguratorScene.jsx
+import * as THREE from "three";
+import React, { useEffect } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, ContactShadows } from "@react-three/drei";
 
-import HingedPanel from './base/HingedPanel.jsx';
-import LidGroup from './lid/LidGroup.jsx';
-import Figurine from './figurines/Figurine.jsx';
-import FigurineDragRotation from './figurines/FigurineDragRotation.jsx';
-import PaperInset from './paper/PaperInset.jsx';
-import FixedLights from '../core/lighting/FixedLights.jsx';
-import { useBoxAnimator } from '../core/animation/BoxAnimator.js';
+import HingedPanel from "./base/HingedPanel.jsx";
+import LidGroup from "./lid/LidGroup.jsx";
 
-import { BOX_SIZE, WALL_THICKNESS, ANIM, EPS, PAPER_INSET, CARDBOARD_COLOR } 
-  from '../constants.js';
+import Figurine from "./figurines/Figurine.jsx";
+import FigurineDragRotation from "./figurines/FigurineDragRotation.jsx";
 
-export default function Scene({ papers, figurineUrl }) {
+import PaperInset from "./paper/PaperInset.jsx";
 
-  // Central animation controller -------------------------------------
-  const {
-    lidSpring,
-    wallsSpring,
-    open,
-    close,
-    reset
-  } = useBoxAnimator(ANIM);
+import FixedLights from "../core/lighting/FixedLights.jsx";
+import { useBoxAnimator } from "../core/animation/BoxAnimator.js";
 
-  // Attach DOM events -------------------------------------------------
+import {
+  BOX_SIZE,
+  WALL_THICKNESS,
+  ANIM,
+  EPS,
+  PAPER_INSET,
+  CARDBOARD_COLOR,
+} from "../constants.js";
+
+export default function ConfiguratorScene({ papers, figurineUrl }) {
+  // Animation controller
+  const { lidSpring, wallsSpring, open, close, reset } = useBoxAnimator(ANIM);
+
+  // Event bindings
   useEffect(() => {
     document.addEventListener("open-box", open);
     document.addEventListener("close-box", close);
@@ -42,9 +41,6 @@ export default function Scene({ papers, figurineUrl }) {
     };
   }, [open, close, reset]);
 
-  // -------------------------------------------------------------------
-  // Scene Rendering
-  // -------------------------------------------------------------------
   return (
     <Canvas
       gl={(renderer) => {
@@ -61,42 +57,22 @@ export default function Scene({ papers, figurineUrl }) {
         if (controls) controls.enabled = true;
       }}
     >
-      {/* Ambient + hemisphere light */}
+      {/* Ambient / Hemisphere */}
       <ambientLight intensity={0.35} />
       <hemisphereLight
         intensity={0.25}
-        skyColor={"#ffffff"}
-        groundColor={"#f0eee9"}
+        skyColor="#ffffff"
+        groundColor="#f0eee9"
       />
 
-      {/* Directional / key lights */}
-      <directionalLight
-        position={[0, 3, 1.0, 0.4]}
-        intensity={2.4}
-        castShadow={false}
-      />
-      <directionalLight
-        position={[-0.3, 0.4, -0.4]}
-        intensity={0.35}
-        castShadow={false}
-      />
-      <directionalLight
-        position={[0, 0.5, -0.5]}
-        intensity={0.25}
-        castShadow={false}
-      />
-      <directionalLight
-        position={[0.9, 0.4, 1.2]}
-        intensity={0.85}
-        color={"#ffffff"}
-        castShadow={false}
-      />
-      <directionalLight
-        position={[0, 1, 0]}
-        intensity={3.0}
-        castShadow={false}
-      />
+      {/* Additional key / fill lights */}
+      <directionalLight position={[0, 3, 1]} intensity={2.4} />
+      <directionalLight position={[-0.3, 0.4, -0.4]} intensity={0.35} />
+      <directionalLight position={[0, 0.5, -0.5]} intensity={0.25} />
+      <directionalLight position={[0.9, 0.4, 1.2]} intensity={0.85} color="#ffffff" />
+      <directionalLight position={[0, 1, 0]} intensity={3.0} />
 
+      {/* Camera-aligned studio rig */}
       <FixedLights />
 
       <OrbitControls makeDefault enableDamping dampingFactor={0.1} />
@@ -110,7 +86,7 @@ export default function Scene({ papers, figurineUrl }) {
         frames={1}
       />
 
-      {/* Box bottom */}
+      {/* Base (cardboard bottom) */}
       <group position={[0, WALL_THICKNESS / 2, 0]}>
         <mesh castShadow={false} receiveShadow={false}>
           <boxGeometry args={[BOX_SIZE, WALL_THICKNESS, BOX_SIZE]} />
@@ -122,7 +98,7 @@ export default function Scene({ papers, figurineUrl }) {
           />
         </mesh>
 
-        {/* Inside base */}
+        {/* Inner base */}
         {papers?.innerBase && (
           <PaperInset
             url={papers.innerBase}
@@ -131,11 +107,11 @@ export default function Scene({ papers, figurineUrl }) {
             rotation={[-Math.PI / 2, 0, 0]}
             inset={PAPER_INSET}
             mode="tileBase"
-            unlit={true}
+            unlit
           />
         )}
 
-        {/* Outside base */}
+        {/* Outer base */}
         {papers?.outerBase && (
           <PaperInset
             url={papers.outerBase}
@@ -144,12 +120,12 @@ export default function Scene({ papers, figurineUrl }) {
             rotation={[Math.PI / 2, 0, 0]}
             inset={PAPER_INSET}
             mode="tileBase"
-            unlit={true}
+            unlit
           />
         )}
       </group>
 
-      {/* Four walls */}
+      {/* Side panels */}
       <HingedPanel side="front" spring={wallsSpring} papers={papers} />
       <HingedPanel side="back" spring={wallsSpring} papers={papers} />
       <HingedPanel side="left" spring={wallsSpring} papers={papers} />
