@@ -1,4 +1,6 @@
 // FixedLights.jsx
+import * as THREE from 'three';
+import { useThree } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
 import React, { useRef } from 'react';
 

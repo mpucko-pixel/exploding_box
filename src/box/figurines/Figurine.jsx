@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { FIGURE_MAX_HEIGHT, WALL_THICKNESS } from '../constants.js';
+import { FIGURE_MAX_HEIGHT, WALL_THICKNESS } from '../../constants.js';
 
 /**
  * Figurine

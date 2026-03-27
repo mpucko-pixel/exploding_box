@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import { loadCachedTexture } from '../textureCache.js';
+import { loadCachedTexture } from './core/utils/textureCache.js';
 import { BOX_SIZE, LID_SIZE } from '../constants.js';
+
 
 export default function DecorativeLayer({ side, textures }) {
   // Izberi pravi URL za teksturo glede na 'side'

@@ -1,9 +1,10 @@
 // -------------------------------------------------------------
-// File: src/animation/BoxAnimator.js
+// File: src/core/animation/BoxAnimator.js
 // Centralizes lid + wall animation sequencing with delays
 // -------------------------------------------------------------
 import { useRef, useCallback } from "react";
 import { useSpring } from "@react-spring/three";
+import { wait } from '../utils/wait.js';
 
 export function useBoxAnimator(ANIM) {
   const isAnimating = useRef(false);

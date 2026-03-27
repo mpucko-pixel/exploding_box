@@ -1,15 +1,7 @@
 import React from 'react';
 import { a } from '@react-spring/three';
-import {
-  BOX_SIZE,
-  LID_SIZE,
-  LID_OVERLAP,
-  WALL_THICKNESS,
-  EPS,
-  PAPER_INSET,
-  CARDBOARD_COLOR
-} from '../constants.js';
-import PaperInset from './PaperInset.jsx';
+import { BOX_SIZE, WALL_THICKNESS, EPS, PAPER_INSET, LID_OVERLAP, LID_SIZE, CARDBOARD_COLOR } from '../../constants.js';
+import PaperInset from '../paper/PaperInset.jsx';
 
 export default function LidGroup({ spring, papers }) {
   const tTop = WALL_THICKNESS;   // debelina plošče

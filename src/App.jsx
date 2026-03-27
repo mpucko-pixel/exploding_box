@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import Scene from './components/Scene.jsx';
 
-import TextureControls from './ui/TextureControls.jsx';
-import FigurineControls from './ui/FigurineControls.jsx';
-import FigurineLibrary from './ui/FigurineLibrary.jsx';
-import FigurineLoader from './ui/FigurineLoader.jsx';
-import ResetPanel from './ui/ResetPanel.jsx';
-
-import { clearTextureCache } from './textureCache.js';
+import TextureControls from './ui/panels/TextureControls.jsx';
+import FigurineControls from './ui/panels/FigurineControls.jsx';
+import FigurineLibrary from './ui/panels/FigurineLibrary.jsx';
+import FigurineLoader from './ui/panels/FigurineLoader.jsx';
+import ResetPanel from './ui/panels/ResetPanel.jsx';
+import ConfiguratorScene from './box/ConfiguratorScene.jsx';
+import { clearTextureCache } from './core/utils/textureCache.js';
 
 export default function App() {
   // per-wall teksture iz UI
@@ -79,7 +78,7 @@ export default function App() {
   return (
     <>
       <div className="canvas-wrap">
-        <Scene papers={papers} textures={textures} figurineUrl={figurineUrl} />
+        <ConfiguratorScene papers={papers} textures={textures} figurineUrl={figurineUrl} />
       </div>
 
       <div className="ui">

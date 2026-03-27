@@ -1,5 +1,5 @@
 // -------------------------------------------------------------
-// File: src/components/Scene.jsx
+// File: src/box/ConfiguratorScene.jsx
 // Updated with clean animation system via BoxAnimator.js
 // -------------------------------------------------------------
 import * as THREE from 'three';
@@ -7,23 +7,16 @@ import React, { useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, ContactShadows } from '@react-three/drei';
 
-import HingedPanel from './HingedPanel.jsx';
-import LidGroup from './LidGroup.jsx';
-import FigurineDragRotation from './FigurineDragRotation.jsx';
-import Figurine from './Figurine.jsx';
-import PaperInset from './PaperInset.jsx';
-import FixedLights from './FixedLights.jsx';
+import HingedPanel from './base/HingedPanel.jsx';
+import LidGroup from './lid/LidGroup.jsx';
+import Figurine from './figurines/Figurine.jsx';
+import FigurineDragRotation from './figurines/FigurineDragRotation.jsx';
+import PaperInset from './paper/PaperInset.jsx';
+import FixedLights from '../core/lighting/FixedLights.jsx';
+import { useBoxAnimator } from '../core/animation/BoxAnimator.js';
 
-import {
-  BOX_SIZE,
-  WALL_THICKNESS,
-  ANIM,
-  EPS,
-  PAPER_INSET,
-  CARDBOARD_COLOR,
-} from '../constants.js';
-
-import { useBoxAnimator } from '../animation/BoxAnimator.js';
+import { BOX_SIZE, WALL_THICKNESS, ANIM, EPS, PAPER_INSET, CARDBOARD_COLOR } 
+  from '../constants.js';
 
 export default function Scene({ papers, figurineUrl }) {
 

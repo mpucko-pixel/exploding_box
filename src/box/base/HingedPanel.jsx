@@ -1,13 +1,7 @@
 import React, { useMemo } from 'react';
 import { a } from '@react-spring/three';
-import {
-  BOX_SIZE,
-  WALL_THICKNESS,
-  EPS,
-  PAPER_INSET,
-  CARDBOARD_COLOR
-} from '../constants.js';
-import PaperInset from './PaperInset.jsx';
+import { BOX_SIZE, WALL_THICKNESS, EPS, PAPER_INSET, CARDBOARD_COLOR } from '../../constants.js';
+import PaperInset from '../paper/PaperInset.jsx';
 
 export default function HingedPanel({ side, spring, papers }) {
   const h = BOX_SIZE / 2;
