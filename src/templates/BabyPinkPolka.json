@@ -1,0 +1,36 @@
+{
+  "id": "BabyPinkPolka",
+  "name": "Baby – Pink Polka",
+  "textures": {
+    "lidTop": {
+      "real": "lidTop_real.png",
+      "tile": "lidTop_tile.png",
+      "scaleMode": "real-world"
+    },
+    "lidSides": {
+      "real": "lidSides_real.png",
+      "tile": "lidSides_tile.png",
+      "scaleMode": "real-world"
+    },
+    "outerWalls": {
+      "real": "outerWalls_real.png",
+      "tile": "outerWalls_tile.png"
+    },
+    "innerWalls": {
+      "real": "innerWalls_real.png",
+      "tile": "innerWalls_tile.png"
+    },
+    "outerBase": {
+      "real": "outerBase_real.png",
+      "tile": "outerBase_tile.png"
+    },
+    "innerBase": {
+      "real": "innerBase_real.png",
+      "tile": "innerBase_tile.png"
+    }
+  },
+  "default": {
+    "version": "tile",
+    "scaleMode": "real-world"
+  }
+}

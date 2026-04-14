@@ -1,71 +1,56 @@
 // src/state/store.js
 import { create } from "zustand";
 import { cloneJSON } from "../core/utils/helpers.js";
+import { templates } from "../templates";
 
-/**
- * Global Store for Exploding Box Configurator
- */
 export const useStore = create((set, get) => ({
 
-  //---------------------------------------------------------------------------
-  // TEXTURES (raw input from UI)
-  //---------------------------------------------------------------------------
+  // ===========================================================================
+  // TEXTURES (raw source used by computePapers → Scene)
+  // ===========================================================================
   textures: {
-    front: null,
-    back: null,
-    left: null,
-    right: null,
-    lid: null,
+    lid: null,        // lidTop + lidSides
+    outerBase: null,  // outer walls + outer floor
+    innerBase: null   // inner floor (used later)
   },
 
-  setTexture: (side, url) =>
-    set((s) => ({
-      textures: { ...s.textures, [side]: url },
-    })),
+  setTextures: (t) => set({ textures: { ...get().textures, ...t } }),
 
   resetTextures: () =>
     set({
       textures: {
-        front: null,
-        back: null,
-        left: null,
-        right: null,
         lid: null,
-      },
+        outerBase: null,
+        innerBase: null
+      }
     }),
 
-  //---------------------------------------------------------------------------
-  // PAPERS (computed “final surfaces” for PaperInset)
-  //---------------------------------------------------------------------------
+  // ===========================================================================
+  // PAPERS (what the Scene actually reads)
+  // ===========================================================================
   papers: {
-    outerBase: null,
-    innerBase: null,
     lidTop: null,
     lidSides: null,
+    outerBase: null,
+    innerBase: null
   },
 
   computePapers: () => {
-    const { textures } = get();
-
-    const outerBase =
-      textures.front ||
-      textures.back ||
-      textures.left ||
-      textures.right ||
-      null;
-
-    const innerBase = null; // reserved for future controls
-    const lidTop = textures.lid || null;
-    const lidSides = textures.lid || null;
+    const t = get().textures;
 
     set({
-      papers: { outerBase, innerBase, lidTop, lidSides },
+      papers: {
+        lidTop: t.lid,
+        lidSides: t.lid,
+        outerBase: t.outerBase,
+        innerBase: t.innerBase
+      }
     });
   },
 
-  //---------------------------------------------------------------------------
+  // ===========================================================================
   // FIGURINE
-  //---------------------------------------------------------------------------
+  // ===========================================================================
   figurineUrl: null,
 
   setFigurineUrl: (url) => set({ figurineUrl: url }),
@@ -75,23 +60,19 @@ export const useStore = create((set, get) => ({
     document.dispatchEvent(new Event("reset-figurine-rotation"));
   },
 
-  //---------------------------------------------------------------------------
-  // UI
-  //---------------------------------------------------------------------------
-  activePanel: "textures", // textures | figurine | export | templates | etc.
+  // ===========================================================================
+  // UI STATE
+  // ===========================================================================
+  activePanel: "textures",
+  setActivePanel: (p) => set({ activePanel: p }),
 
-  setActivePanel: (panel) => set({ activePanel: panel }),
-
-  //---------------------------------------------------------------------------
-  // ANIMATION TRIGGERS (3D SCENE)
-  //---------------------------------------------------------------------------
+  // ===========================================================================
+  // BOX ANIMATION
+  // ===========================================================================
   openBox: () => document.dispatchEvent(new Event("open-box")),
   closeBox: () => document.dispatchEvent(new Event("close-box")),
   resetBox: () => document.dispatchEvent(new Event("reset-box")),
 
-  //---------------------------------------------------------------------------
-  // RESET EVERYTHING
-  //---------------------------------------------------------------------------
   resetAll: () => {
     get().resetTextures();
     get().resetFigurine();
@@ -99,31 +80,88 @@ export const useStore = create((set, get) => ({
     document.dispatchEvent(new Event("reset-ui-inputs"));
   },
 
-  //---------------------------------------------------------------------------
-  // EXPORT CONFIGURATION
-  //---------------------------------------------------------------------------
+  // ===========================================================================
+  // TEMPLATE SYSTEM
+  // ===========================================================================
+  templateId: null,
+  templateVersion: "tile",          // "tile" | "real"
+  templateScaleMode: "real-world",  // "real-world" | "fit"
+
+  setTemplate: (templateId) => {
+    const tpl = templates[templateId];
+    if (!tpl) return;
+
+    set({
+      templateId,
+      templateVersion: tpl.default.version,
+      templateScaleMode: tpl.default.scaleMode
+    });
+
+    get().applyTemplateTextures(templateId);
+  },
+
+  setTemplateVersion: (v) => {
+    set({ templateVersion: v });
+    const id = get().templateId;
+    if (id) get().applyTemplateTextures(id);
+  },
+
+  setTemplateScaleMode: (m) =>
+    set({ templateScaleMode: m }),
+
+  // ===========================================================================
+  // APPLY TEMPLATE TEXTURES (final fix: Vite-valid URLs)
+  // ===========================================================================
+  applyTemplateTextures: (templateId) => {
+    const tpl = templates[templateId];
+    if (!tpl) return;
+
+    const version = get().templateVersion;
+    const s = tpl.textures;
+
+    // Vite-compatible URL builder
+    const makeUrl = (file) =>
+      new URL(
+        `../assets/templates/${templateId}/${file}`,
+        import.meta.url
+      ).href;
+
+    const next = {
+      lid: makeUrl(s.lidTop[version]),
+      outerBase: makeUrl(s.outerWalls[version]),
+      innerBase: makeUrl(s.innerBase[version])
+    };
+
+    set({ textures: next });
+    get().computePapers();
+  },
+
+  // ===========================================================================
+  // EXPORT / IMPORT
+  // ===========================================================================
   exportConfig: () => {
-    const { textures, papers, figurineUrl } = get();
+    const { textures, papers, figurineUrl, templateId } = get();
+
     return cloneJSON({
+      templateId,
       textures,
       papers,
       figurineUrl,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     });
   },
 
-  //---------------------------------------------------------------------------
-  // LOAD CONFIGURATION (JSON import)
-  //---------------------------------------------------------------------------
-  loadConfig: (config) => {
-    if (!config) return;
+  loadConfig: (cfg) => {
+    if (!cfg) return;
 
     set({
-      textures: cloneJSON(config.textures),
-      papers: cloneJSON(config.papers),
-      figurineUrl: config.figurineUrl || null,
+      templateId: cfg.templateId,
+      textures: cloneJSON(cfg.textures),
+      papers: cloneJSON(cfg.papers),
+      figurineUrl: cfg.figurineUrl || null
     });
 
     document.dispatchEvent(new Event("reset-ui-inputs"));
   },
+
 }));

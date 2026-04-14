@@ -1,0 +1,99 @@
+// src/App.jsx
+import React, { useCallback, useEffect, useState } from "react";
+
+import TextureControls from "./ui/panels/TextureControls.jsx";
+import FigurineControls from "./ui/panels/FigurineControls.jsx";
+import FigurineLibrary from "./ui/panels/FigurineLibrary.jsx";
+import FigurineLoader from "./ui/panels/FigurineLoader.jsx";
+import ResetPanel from "./ui/panels/ResetPanel.jsx";
+
+import SidebarLayout from "./ui/layout/SidebarLayout.jsx";
+import ConfiguratorScene from "./box/ConfiguratorScene.jsx";
+
+import { clearTextureCache } from "./core/utils/textureCache.js";
+
+export default function App() {
+  const [textures, setTextures] = useState({
+    front: null,
+    back: null,
+    left: null,
+    right: null,
+    lid: null,
+  });
+
+  const [figurineUrl, setFigurineUrl] = useState(null);
+
+  const [papers, setPapers] = useState({
+    outerBase: null,
+    innerBase: null,
+    lidTop: null,
+    lidSides: null,
+  });
+
+  // recompute papers
+  useEffect(() => {
+    const outerBase =
+      textures.front ||
+      textures.back ||
+      textures.left ||
+      textures.right ||
+      null;
+
+    const innerBase = null;
+    const lidTop = textures.lid || null;
+    const lidSides = textures.lid || null;
+
+    setPapers({
+      outerBase,
+      innerBase,
+      lidTop,
+      lidSides,
+    });
+  }, [textures]);
+
+  // reset logic
+  const reset = useCallback(() => {
+    clearTextureCache();
+
+    setTextures({
+      front: null,
+      back: null,
+      left: null,
+      right: null,
+      lid: null,
+    });
+
+    setFigurineUrl(null);
+
+    document.dispatchEvent(new Event("reset-box"));
+    document.dispatchEvent(new Event("reset-figurine-rotation"));
+    document.dispatchEvent(new Event("reset-ui-inputs"));
+  }, []);
+
+  // keyboard shortcuts
+  useEffect(() => {
+    const handler = (e) => {
+      const k = e.key.toLowerCase();
+      if (k === "a") document.dispatchEvent(new Event("open-box"));
+      if (k === "o") document.dispatchEvent(new Event("close-box"));
+      if (k === "r") reset();
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [reset]);
+
+  return (
+    <>
+      <SidebarLayout />
+
+      <div className="key-hint">
+        Tipke: <b>A</b> odpri · <b>O</b> zapri · <b>R</b> reset
+      </div>
+
+      <div className="canvas-wrap">
+        <ConfiguratorScene papers={papers} figurineUrl={figurineUrl} />
+      </div>
+    </>
+  );
+}
